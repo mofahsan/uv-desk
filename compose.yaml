@@ -1,0 +1,50 @@
+
+services:
+  uvdesk:
+    build: .
+    ports:
+      - "8081:80"
+    environment:
+      APP_ENV: dev
+      APP_SECRET: 8ea88e9e9be4ce4cb020449b43b1cbf3
+      DATABASE_URL: postgresql://postgres:0@database:5432/uvdesk?serverVersion=16&charset=utf8
+      MAILER_URL: null://localhost
+      # MySQL setup variables for entrypoint script
+      MYSQL_USER: root
+      MYSQL_PASSWORD: uvdesk123
+      MYSQL_DATABASE: uvdesk
+      MYSQL_ROOT_PASSWORD: uvdesk123
+    depends_on:
+      - database
+    volumes:
+      - ./:/var/www/uvdesk
+      - uvdesk_var:/var/www/uvdesk/var
+      - uvdesk_public:/var/www/uvdesk/public
+      - uvdesk_cache:/var/www/uvdesk/public/cache
+      - mysql_data:/var/lib/mysql
+    command: tail -f /dev/null
+
+###> doctrine/doctrine-bundle ###
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-uvdesk}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-0}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+    ports:
+      - "5434:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
+  uvdesk_var:
+  uvdesk_public:
+  uvdesk_cache:
+  mysql_data:

@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: uvdesk
+      POSTGRES_PASSWORD: 0
+      POSTGRES_USER: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  uvdesk:
+    image: php:8.1-apache
+    ports:
+      - "8080:80"
+    environment:
+      APP_ENV: dev
+      APP_SECRET: 8ea88e9e9be4ce4cb020449b43b1cbf3
+      DATABASE_URL: postgresql://postgres:0@database:5432/uvdesk?serverVersion=16&charset=utf8
+      MAILER_URL: "null://localhost"
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./:/var/www/html
+      - ./public:/var/www/html/public
+    working_dir: /var/www/html
+    command: >
+      sh -c "
+      apt-get update && apt-get install -y libpq-dev git unzip libxml2-dev libc-client-dev libkrb5-dev &&
+      docker-php-ext-configure imap --with-kerberos --with-imap-ssl &&
+      docker-php-ext-install pdo pdo_pgsql imap xml &&
+      pecl install mailparse &&
+      docker-php-ext-enable mailparse &&
+      a2enmod rewrite &&
+      echo '<VirtualHost *:80>
+          DocumentRoot /var/www/html/public
+          <Directory /var/www/html/public>
+              AllowOverride All
+              Require all granted
+          </Directory>
+      </VirtualHost>' > /etc/apache2/sites-available/000-default.conf &&
+      curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&
+      cd /var/www/html &&
+      composer install --no-interaction --optimize-autoloader --ignore-platform-req=ext-mailparse --ignore-platform-req=ext-imap &&
+      apache2-foreground
+      "
+
+volumes:
+  database_data:
