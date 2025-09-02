@@ -7,9 +7,9 @@ services:
       dockerfile: Dockerfile.apache
     container_name: uvdesk_apache
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
-      - ./uv-desk2:/var/www/html
+      # - ./uvdesk:/var/www/html
       - ./apache-uvdesk.conf:/etc/apache2/sites-available/000-default.conf
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public

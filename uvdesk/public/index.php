@@ -1,10 +1,20 @@
 <?php
 
 use App\Kernel;
+use Symfony\Component\HttpFoundation\Request;
+
+
+
 
 require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
 return function (array $context) {
+
+    Request::setTrustedProxies(
+    [$_SERVER['REMOTE_ADDR']], // or ['172.17.0.0/16'] if Docker network
+    Request::HEADER_X_FORWARDED_ALL
+);
+
     // Function to check if we're running inside a Docker container
     function isRunningInDocker(): bool {
         return (
