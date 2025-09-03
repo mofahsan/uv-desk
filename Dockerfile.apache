@@ -42,6 +42,14 @@ RUN apt-get update && apt-get -y upgrade \
 
     # COPY uvdesk/composer.json uvdesk/composer.lock ./
     RUN composer install --optimize-autoloader
+    
+    # Fix permissions for www-data user
+    RUN chown -R www-data:www-data /var/www/html \
+        && chmod -R 755 /var/www/html \
+        && chmod -R 775 /var/www/html/var \
+        && chmod -R 775 /var/www/html/config \
+        && chmod -R 775 /var/www/html/public/attachments \
+        && chmod -R 775 /var/www/html/public/cache
 
 EXPOSE 8081
 
