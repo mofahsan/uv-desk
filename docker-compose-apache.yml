@@ -9,8 +9,13 @@ services:
     ports:
       - "8081:80"
     volumes:
-      # - ./uvdesk:/var/www/html
-      - ./apache-uvdesk.conf:/etc/apache2/sites-available/000-default.conf
+      # Configuration files (bind mount for easy editing)
+      - ./apache-uvdesk.conf:/etc/apache2/sites-available/000-default.conf      
+      # Named volumes for persistent data
+      - uvdesk_config:/var/www/html/config
+      - uvdesk_var:/var/www/html/var
+      - uvdesk_attachments:/var/www/html/public/attachments
+      - uvdesk_cache:/var/www/html/public/cache
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
       - APP_ENV=dev
@@ -36,6 +41,10 @@ services:
 
 volumes:
   mysql_data:
+  uvdesk_config:
+  uvdesk_var:
+  uvdesk_attachments:
+  uvdesk_cache:
 
 networks:
   uvdesk_network:
